@@ -32,3 +32,14 @@ blocksToText bytesPerBlock (b:bs) =
       bytesToText = map (Char.chr . fromIntegral)
       blockToText = bytesToText . blockToBytes
   in blockToText b ++ blocksToText bytesPerBlock bs
+
+
+type KeyedFunction key = key -> Integer -> Integer
+type KeySchedule masterKey subkey = masterKey -> [subkey]
+
+iterateCipher :: KeySchedule master sub -> KeyedFunction sub -> Int
+                 -> KeyedFunction master
+iterateCipher keySchedule roundFunction numIterations masterKey =
+  let subkeys = take numIterations $ keySchedule masterKey
+      iterations = map roundFunction subkeys
+  in foldl (.) id iterations
