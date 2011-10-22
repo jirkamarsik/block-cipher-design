@@ -1,0 +1,6 @@
+Using package MissingH from Cabal for the MD5 implementation.
+
+To install it, use
+
+  cabal update
+  cabal install MissingH
