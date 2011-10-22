@@ -60,3 +60,17 @@ laiMasseyCipher keySchedule numIterations blockSize embeddedFunction
     keySchedule
     (laiMasseyRoundFunction blockSize embeddedFunction groupAdd groupInv)
     numIterations
+
+
+maStructure :: Int -> (Integer, Integer) -> (Integer, Integer)
+            -> (Integer, Integer)
+maStructure modulus (key1, key2) (in1, in2) =
+  let add x y = (x + y) `mod` 2^modulus
+      mul 0 y = (2^modulus) `mul` y
+      mul x 0 = x `mul` (2^modulus)
+      mul x y = (x * y) `mod` (2^modulus + 1)
+      a = in1 `mul` key1
+      b = a `add` in2
+      c = b `mul` key2
+      d = c `add` a
+  in (c, d)

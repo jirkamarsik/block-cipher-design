@@ -32,13 +32,27 @@ stupidDecipher key =
   in stupidFlip
      . (iterateCipher inverseKeySchedule stupidRoundFunction stupidRounds key)
 
-simpleFeistelCipher = feistelCipher md5schedule 8 256 xor
+
+feistelRounds = 16
+feistelBlockBytes = 8
+feistelBlockBits = 8 * feistelBlockBytes
+
+macroMA :: KeyedFunction Integer
+macroMA key input =
+  let keyPair = splitToDuo (feistelBlockBits `div` 2) key
+      inputPair = splitToDuo (feistelBlockBits `div` 2) input
+      outputPair = maStructure (feistelBlockBits `div` 4) keyPair inputPair
+  in mergeDuo (feistelBlockBits `div` 2) outputPair
+
+simpleFeistelCipher =
+  feistelCipher md5schedule feistelRounds feistelBlockBits macroMA
 
 simpleFeistelDecipher =
-  feistelCipher (\key -> reverse $ take 8 $ md5schedule key) 8 256 xor
+  feistelCipher (\key -> reverse $ take feistelRounds $ md5schedule key)
+                feistelRounds feistelBlockBits macroMA
 
 main = do
   text <- readFile "blake-poems.txt"
-  let cipher = stupidCipher "The secret key!"
-  measureDiffusion 16 cipher text
-  measureCorrelation 16 cipher text
+  let cipher = simpleFeistelCipher "The super secret key."
+  measureDiffusion feistelBlockBytes cipher text
+  measureCorrelation feistelBlockBytes cipher text
