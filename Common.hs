@@ -30,9 +30,9 @@ feistelRoundFunction blockSize embeddedFunction key block =
       f_right = embeddedFunction key right
   in mergeDuo blockSize (right, left `xor` f_right)
 
-feistelNetwork :: KeySchedule masterKey subkey -> Int -> Int
-               -> KeyedFunction subkey -> KeyedFunction masterKey
-feistelNetwork keySchedule numIterations blockSize embeddedFunction key block =
+feistelCipher :: KeySchedule masterKey subkey -> Int -> Int
+              -> KeyedFunction subkey -> KeyedFunction masterKey
+feistelCipher keySchedule numIterations blockSize embeddedFunction key block =
   let theNetwork =
         iterateCipher keySchedule
                       (feistelRoundFunction blockSize embeddedFunction)
@@ -51,11 +51,11 @@ laiMasseyRoundFunction blockSize embeddedFunction groupAdd groupInv key block =
       f_output = embeddedFunction key f_input
   in mergeDuo blockSize (left `groupAdd` f_output, right `groupAdd` f_output)
 
-laiMasseyNetwork :: KeySchedule masterKey subkey -> Int -> Int
-                 -> KeyedFunction subkey -> (Integer -> Integer -> Integer)
-                 -> (Integer -> Integer) -> KeyedFunction masterKey
-laiMasseyNetwork keySchedule numIterations blockSize embeddedFunction
-                 groupAdd groupInv =
+laiMasseyCipher :: KeySchedule masterKey subkey -> Int -> Int
+                -> KeyedFunction subkey -> (Integer -> Integer -> Integer)
+                -> (Integer -> Integer) -> KeyedFunction masterKey
+laiMasseyCipher keySchedule numIterations blockSize embeddedFunction
+                groupAdd groupInv =
   iterateCipher
     keySchedule
     (laiMasseyRoundFunction blockSize embeddedFunction groupAdd groupInv)

@@ -18,19 +18,24 @@ stupidFlip block =
   let [x1,x2,x3,x4,x5,x6,x7,x8] = extractSubblocks 16 8 block
   in mergeSubblocks 16 8 [x2,x1,x4,x3,x6,x5,x8,x7]
 
-simpleRoundFunction :: KeyedFunction Integer
-simpleRoundFunction key = (stupidAddition key) . stupidFlip
+stupidRoundFunction :: KeyedFunction Integer
+stupidRoundFunction key = (stupidAddition key) . stupidFlip
 
 stupidCipher :: KeyedFunction String
 stupidCipher key =
-  stupidFlip . (iterateCipher md5schedule simpleRoundFunction stupidRounds key)
+  stupidFlip . (iterateCipher md5schedule stupidRoundFunction stupidRounds key)
 
 stupidDecipher :: KeyedFunction String
 stupidDecipher key =
   let keySchedule = \key -> reverse $ take stupidRounds $ md5schedule key
       inverseKeySchedule = \key -> map (\x -> 2^128 - x) (keySchedule key)
   in stupidFlip
-     . (iterateCipher inverseKeySchedule simpleRoundFunction stupidRounds key)
+     . (iterateCipher inverseKeySchedule stupidRoundFunction stupidRounds key)
+
+simpleFeistelCipher = feistelCipher md5schedule 8 256 xor
+
+simpleFeistelDecipher =
+  feistelCipher (\key -> reverse $ take 8 $ md5schedule key) 8 256 xor
 
 main = do
   text <- readFile "blake-poems.txt"
