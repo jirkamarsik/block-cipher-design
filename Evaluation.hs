@@ -1,4 +1,4 @@
-module Main where
+module Evaluation where
 
 import Basics
 import Data.Bits
@@ -48,8 +48,3 @@ measureCorrelation blockSize cipher text = do
       correlation = correl inputBlocks outputBlocks
   putStrLn $ "Pearson product-moment correlation coefficient: "
              ++ (show correlation)
-
-main = do
-  gutenberg <- readFile "shakespeare-macbeth.txt"
-  measureDiffusion 16 id gutenberg
-  measureCorrelation 16 id gutenberg
