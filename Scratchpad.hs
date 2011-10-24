@@ -39,4 +39,5 @@ simpleFeistelDecipher =
 main = do
   text <- readFile "blake-poems.txt"
   let cipher = simpleFeistelCipher "The super secret key."
-  measureDiffusion feistelBlockBytes cipher text
+  --measureDiffusion feistelBlockBytes cipher text
+  measureDiffusion' feistelBlockBytes cipher text

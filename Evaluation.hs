@@ -29,6 +29,27 @@ measureDiffusion blockSize cipher text = do
   reportMeanBitEffects
   reportMeanestBitEffect
 
+measureDiffusion' :: Int -> (Integer -> Integer) -> String -> IO ()
+measureDiffusion' blockSize cipher text = do
+  let inputBlocks = textToBlocks blockSize text
+      computeChangedBits input =
+          let output = cipher input
+              differenceBits a b =
+                [n | n <- [0..8*blockSize-1], testBit a n /= testBit b n]
+          in concat $ map (\bit -> let input' = complementBit input bit
+                                       output' = cipher input'
+                                   in differenceBits output output')
+                          [0..8*blockSize-1]
+      changedBits = concat $ map computeChangedBits inputBlocks
+      probChange bit = (/ fromIntegral (8*blockSize * length inputBlocks))
+                       $ fromIntegral $ length $ filter (== bit) changedBits
+      reportBitChangeProbs =
+        sequence $ map (\i -> putStrLn $ "Probability of bit " ++ show i ++
+                                         " changing = " ++ show (probChange i))
+                       [0..8*blockSize-1]
+  _ <- reportBitChangeProbs
+  return ()
+
 measureCorrelation :: Int -> (Integer -> Integer) -> String -> IO ()
 measureCorrelation blockSize cipher text = do
   let inputBlocks = textToBlocks blockSize text
