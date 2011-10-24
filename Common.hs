@@ -3,6 +3,9 @@ module Common where
 import Basics
 import Data.Bits
 
+-- The following four are convenience functions for packing and unpacking
+-- small numbers into/from large numbers.
+
 splitToDuo :: Int -> Integer -> (Integer, Integer)
 splitToDuo blockSize block =
   let [left, right] = extractSubblocks (ceiling (fromIntegral blockSize / 2)) 2
@@ -24,12 +27,15 @@ mergeQuartet blockSize (x1,x2,x3,x4) =
   mergeSubblocks (ceiling (fromIntegral blockSize / 4)) 4 [x1, x2, x3, x4]
 
 
+-- Constructing the round function of a Feistel cipher given the function F.
 feistelRoundFunction :: Int -> KeyedFunction key -> KeyedFunction key
 feistelRoundFunction blockSize embeddedFunction key block =
   let (left, right) = splitToDuo blockSize block
       f_right = embeddedFunction key right
   in mergeDuo blockSize (right, left `xor` f_right)
 
+-- A schema for Feistel ciphers, a very simple and elegant way of constructing
+-- trapdoor functions from cryptographically weaker functions.
 feistelCipher :: KeySchedule masterKey subkey -> Int -> Int
               -> KeyedFunction subkey -> KeyedFunction masterKey
 feistelCipher keySchedule numIterations blockSize embeddedFunction key block =
@@ -42,6 +48,7 @@ feistelCipher keySchedule numIterations blockSize embeddedFunction key block =
   in undoLastSwap (theNetwork key block)
 
 
+-- The round function in the Lai-Massey schema.
 laiMasseyRoundFunction :: Int -> KeyedFunction key
                        -> (Integer -> Integer -> Integer)
                        -> (Integer -> Integer) -> KeyedFunction key
@@ -51,6 +58,7 @@ laiMasseyRoundFunction blockSize embeddedFunction groupAdd groupInv key block =
       f_output = embeddedFunction key f_input
   in mergeDuo blockSize (left `groupAdd` f_output, right `groupAdd` f_output)
 
+-- The general Lai-Massey schema for ciphers.
 laiMasseyCipher :: KeySchedule masterKey subkey -> Int -> Int
                 -> KeyedFunction subkey -> (Integer -> Integer -> Integer)
                 -> (Integer -> Integer) -> KeyedFunction masterKey
@@ -62,6 +70,7 @@ laiMasseyCipher keySchedule numIterations blockSize embeddedFunction
     numIterations
 
 
+-- The MA structure which ended up in our cipher.
 maStructure :: Int -> (Integer, Integer) -> (Integer, Integer)
             -> (Integer, Integer)
 maStructure modulus (key1, key2) (in1, in2) =

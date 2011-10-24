@@ -1,9 +1,13 @@
 module Evaluation where
+-- A module where we implement some analyses of ciphers to provide us
+-- feedback during our design.
 
 import Basics
 import Data.Bits
 import Data.Ratio
 
+-- Report the average number of outputs changed when individual input bits
+-- are inverted.
 measureDiffusion :: Int -> (Integer -> Integer) -> String -> IO ()
 measureDiffusion blockSize cipher text = do
   let inputBlocks = textToBlocks blockSize text
@@ -29,6 +33,8 @@ measureDiffusion blockSize cipher text = do
   reportMeanBitEffects
   reportMeanestBitEffect
 
+-- Report the estimated probabilities of an output bit changing when a bit
+-- in the input is inverted.
 measureDiffusion' :: Int -> (Integer -> Integer) -> String -> IO ()
 measureDiffusion' blockSize cipher text = do
   let inputBlocks = textToBlocks blockSize text
@@ -50,6 +56,10 @@ measureDiffusion' blockSize cipher text = do
   _ <- reportBitChangeProbs
   return ()
 
+-- We used Haskell's arbitrary-length integer arithmetic to implement
+-- the computation of Pearson's product-moment correlation coefficient.
+-- As was expected, the metric didn't really apply well to the highly sparse
+-- and non-linear data samples from cryptographic functions.
 measureCorrelation :: Int -> (Integer -> Integer) -> String -> IO ()
 measureCorrelation blockSize cipher text = do
   let inputBlocks = textToBlocks blockSize text
